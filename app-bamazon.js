@@ -1,3 +1,4 @@
+var Table = require('cli-table2');
 var inquirer = require("inquirer");
 var mysql = require("mysql");
 
@@ -7,14 +8,15 @@ console.log(`
                 ====================================================             
   `)
 
+
 var connection = mysql.createConnection({
   host: "localhost",
   port: 3306,
 
-  // Your username
+
   user: "root",
 
-  // Your password
+
   password: "",
   database: "bamazon_db"
 });
@@ -28,11 +30,17 @@ connection.connect(function(err) {
 function afterConnection() {
   var query = connection.query("SELECT * FROM products", function(err, res) {
     if (err) throw err;
-    console.log(`ID:|| PRODUCT:  || DEPARTMENT: || PRICE: || QUANTITY: `);
+
+    var cliTable = new Table({
+      head: ['ID', 'PRODUCT', 'DEPARTMENT', 'PRICE', 'QUANTITY']
+      });
+
     for (var i = 0; i < res.length; i++) {
-     console.log(`${res[i].id}  || ${res[i].product_name} || ${res[i].department_name} || $${res[i].price} || ${res[i].stock_quantity}`); 
+      cliTable.push(
+            [res[i].id, res[i].product_name, res[i].department_name, '$' + res[i].price, res[i].stock_quantity]
+        );
     }
-    // connection.end();
+    console.log(cliTable.toString());
       inquirer.prompt([
 
       {
@@ -79,7 +87,6 @@ function afterConnection() {
         
         
         var updatedQuantity = res[answer.product - 1].stock_quantity - answer.quantity;
-        // console.log(`NEW QUANTITY: ${updatedQuantity}`);
 
         var updateQuery = `UPDATE products SET stock_quantity= ${updatedQuantity} WHERE id=${answer.product}`;
         
