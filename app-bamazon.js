@@ -21,7 +21,6 @@ var connection = mysql.createConnection({
 
 connection.connect(function(err) {
   if (err) throw err;
-  console.log("connected as id " + connection.threadId);
 
 
 });
@@ -29,13 +28,9 @@ connection.connect(function(err) {
 function afterConnection() {
   var query = connection.query("SELECT * FROM products", function(err, res) {
     if (err) throw err;
+    console.log(`ID:|| PRODUCT:  || DEPARTMENT: || PRICE: || QUANTITY: `);
     for (var i = 0; i < res.length; i++) {
-     console.log(`
-      ID: ${res[i].id}
-      PRODUCT: ${res[i].product_name}
-      DEPARTMENT: ${res[i].department_name}
-      PRICE: $${res[i].price}
-      QUANTITY: ${res[i].stock_quantity}`); 
+     console.log(`${res[i].id}  || ${res[i].product_name} || ${res[i].department_name} || $${res[i].price} || ${res[i].stock_quantity}`); 
     }
     // connection.end();
       inquirer.prompt([
@@ -81,9 +76,7 @@ function afterConnection() {
 
       else{
 
-        console.log(`
-          You've order ${answer.quantity} units of ${res[answer.product - 1].product_name}
-          Your total is $${(res[answer.product - 1].price * answer.quantity)}`);
+        
         
         var updatedQuantity = res[answer.product - 1].stock_quantity - answer.quantity;
         // console.log(`NEW QUANTITY: ${updatedQuantity}`);
@@ -93,13 +86,30 @@ function afterConnection() {
 
         connection.query(updateQuery, function(err, results){
           console.log(`
+          You've order ${answer.quantity} units of ${res[answer.product - 1].product_name}
+          Your total is $${(res[answer.product - 1].price * answer.quantity)}
+          `);
+          inquirer.prompt([
+         {
+          type: "confirm",
+          name: "again",
+          message: "Would you like to create another order?"
+         }
+          ]).then(function(answer){
+            if(answer.again){
+              afterConnection();
+            }
+            else{
+              connection.end();
+              return console.log(`
                 ====================================================
                 Thanks for shopping with Bamazon! See you next time!
                 ====================================================
                 `);
+            }
+          });
         });
-        // console.log(`UPDATED QUANTITY: `)
-        connection.end();
+
       }
       
 
